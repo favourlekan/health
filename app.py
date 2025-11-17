@@ -19,18 +19,36 @@ def healthz():
     """Simple health check endpoint for Railway - returns 200 OK"""
     return "OK", 200
 
+@app.route('/health')
+def health_check():
+    """Detailed health check endpoint"""
+    try:
+        return jsonify({
+            'status': 'healthy',
+            'message': 'Health Risk Predictor app is running',
+            'model_compression': 'enabled',
+            'timestamp': '2025-11-17T12:10:15Z'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Health check failed: {str(e)}'
+        }), 500
+
 @app.route('/status')
 def status():
     """Status endpoint with app information"""
     return jsonify({
         'app': 'Health Risk Predictor',
-        'version': '1.0',
+        'version': '1.0-optimized',
         'status': 'running',
+        'optimizations': ['compressed_models', 'lazy_loading', 'health_endpoints'],
         'endpoints': {
             'home': '/',
             'heart_disease': '/heart_disease',
             'diabetes': '/diabetes',
             'health': '/health',
+            'healthz': '/healthz',
             'about': '/about'
         }
     })
@@ -49,6 +67,10 @@ def diabetes_form():
 def predict_heart():
     """Handle heart disease prediction"""
     try:
+        # Load models only when needed for prediction
+        if predictor.heart_model is None:
+            predictor.load_models()
+            
         # Get form data
         features = {
             'age': int(request.form['age']),
@@ -81,6 +103,10 @@ def predict_heart():
 def predict_diabetes():
     """Handle diabetes prediction"""
     try:
+        # Load models only when needed for prediction
+        if predictor.diabetes_model is None:
+            predictor.load_models()
+            
         # Get form data
         features = {
             'gender': request.form['gender'],
@@ -119,52 +145,18 @@ def train_models():
         flash(f'Error training models: {str(e)}', 'error')
         return redirect(url_for('index'))
 
-@app.route('/health')
-def health_check():
-    """Health check endpoint for Railway deployment"""
-    try:
-        # Check if models are loaded
-        if predictor.heart_model is not None and predictor.diabetes_model is not None:
-            return jsonify({
-                'status': 'healthy',
-                'message': 'Health Risk Predictor app is running',
-                'models_loaded': True,
-                'timestamp': '2025-11-17T11:32:34Z'
-            }), 200
-        else:
-            return jsonify({
-                'status': 'partial',
-                'message': 'App is running but models not fully loaded',
-                'models_loaded': False,
-                'timestamp': '2025-11-17T11:32:34Z'
-            }), 200
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': f'Health check failed: {str(e)}',
-            'timestamp': '2025-11-17T11:32:34Z'
-        }), 500
-
 @app.route('/about')
 def about():
     """About page"""
     return render_template('about.html')
 
 if __name__ == '__main__':
-    # Check if models exist, if not, train them
-    if not os.path.exists('models/heart_model.pkl'):
-        print("Models not found. Training models...")
-        try:
-            predictor.train_models()
-            print("Models trained successfully!")
-        except Exception as e:
-            print(f"Error training models: {e}")
-    else:
-        # Load existing models
-        predictor.load_models()
-        print("Models loaded successfully!")
-    
     # Get port from environment (Railway sets this automatically)
     port = int(os.environ.get('PORT', 5000))
+    
+    print(f"🚀 Starting Health Risk Predictor on port {port}")
+    print("✅ Using compressed models for Railway deployment")
+    print("✅ Health endpoints available at /healthz and /health")
+    print("✅ Models load on-demand for faster startup")
     
     app.run(debug=False, host='0.0.0.0', port=port)
