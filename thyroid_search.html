@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thyroid Search Verification</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .good { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Thyroid Search Verification</h1>
+    <p>Click the button below to search for any "thyroid" text on this page:</p>
+    <button onclick="searchForThyroid()">Search for "Thyroid"</button>
+    
+    <div id="results"></div>
+
+    <script>
+        function searchForThyroid() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = ''; // Clear previous results
+            
+            // Search in page text content
+            const bodyText = document.body.innerText.toLowerCase();
+            const thyroidMatches = bodyText.match(/thyroid/g) || [];
+            
+            // Search in all form elements
+            const forms = document.querySelectorAll('form');
+            const formText = Array.from(forms).map(form => form.innerText.toLowerCase()).join(' ');
+            const formThyroidMatches = formText.match(/thyroid/g) || [];
+            
+            // Search in navigation
+            const navText = document.querySelector('nav') ? document.querySelector('nav').innerText.toLowerCase() : '';
+            const navThyroidMatches = navText.match(/thyroid/g) || [];
+            
+            // Search in page title
+            const titleText = document.title.toLowerCase();
+            const titleThyroidMatches = titleText.match(/thyroid/g) || [];
+            
+            // Search in meta description
+            const metaDescription = document.querySelector('meta[name="description"]') ? 
+                document.querySelector('meta[name="description"]').getAttribute('content').toLowerCase() : '';
+            const metaThyroidMatches = metaDescription.match(/thyroid/g) || [];
+            
+            const totalMatches = thyroidMatches.length + formThyroidMatches.length + 
+                               navThyroidMatches.length + titleThyroidMatches.length + metaThyroidMatches.length;
+            
+            if (totalMatches === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="result good">
+                        <h3>✅ NO THYROID CONTENT FOUND</h3>
+                        <p><strong>0</strong> occurrences of "thyroid" found in:</p>
+                        <ul>
+                            <li>Page body text</li>
+                            <li>Form elements</li>
+                            <li>Navigation menu</li>
+                            <li>Page title</li>
+                            <li>Meta description</li>
+                        </ul>
+                        <p><strong>Your app is clean!</strong></p>
+                    </div>
+                `;
+            } else {
+                resultsDiv.innerHTML = `
+                    <div class="result warning">
+                        <h3>⚠️ THYROID CONTENT DETECTED</h3>
+                        <p><strong>${totalMatches}</strong> occurrences of "thyroid" found:</p>
+                        <ul>
+                            <li>Body text: ${thyroidMatches.length}</li>
+                            <li>Forms: ${formThyroidMatches.length}</li>
+                            <li>Navigation: ${navThyroidMatches.length}</li>
+                            <li>Title: ${titleThyroidMatches.length}</li>
+                            <li>Meta: ${metaThyroidMatches.length}</li>
+                        </ul>
+                        <p>Please check your deployed code or clear browser cache.</p>
+                    </div>
+                `;
+            }
+            
+            // Show what was searched
+            resultsDiv.innerHTML += `
+                <div class="result">
+                    <h4>Search performed on:</h4>
+                    <p><strong>URL:</strong> ${window.location.href}</p>
+                    <p><strong>Title:</strong> ${document.title}</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
