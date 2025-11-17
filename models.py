@@ -212,15 +212,20 @@ class HealthRiskPredictor:
     def load_models(self):
         """Load trained models and preprocessors"""
         try:
+            # Use compressed diabetes model if available (for Railway), otherwise use original
+            diabetes_model_path = 'models/diabetes_model_compressed.pkl' if os.path.exists('models/diabetes_model_compressed.pkl') else 'models/diabetes_model.pkl'
+            
             self.heart_model = joblib.load('models/heart_model.pkl')
-            self.diabetes_model = joblib.load('models/diabetes_model.pkl')
+            self.diabetes_model = joblib.load(diabetes_model_path)
             self.heart_scaler = joblib.load('models/heart_scaler.pkl')
             self.diabetes_scaler = joblib.load('models/diabetes_scaler.pkl')
             self.diabetes_encoders = joblib.load('models/diabetes_encoders.pkl')
             self.is_trained = True
-            print("Models loaded successfully!")
-        except FileNotFoundError:
-            print("Models not found. Please train the models first.")
+            
+            model_type = "compressed" if "compressed" in diabetes_model_path else "original"
+            print(f"Models loaded successfully! (using {model_type} diabetes model)")
+        except FileNotFoundError as e:
+            print(f"Models not found: {e}. Please train the models first.")
             return False
         return True
 
